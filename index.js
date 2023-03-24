@@ -1,10 +1,29 @@
 const express = require('express')
+const morgan = require('morgan')
 const Joi = require('joi')
+const helmet = require('helmet')
 const { faker } = require('@faker-js/faker')
+const { logger, authenticator } = require('./middleware')
 
 // Setup Express
 const app = express()
+
+// Built in middlewares
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use(express.static('public'))
+
+// Third party middlewares
+app.use(helmet())
+
+if (app.get('env') === 'development') {
+  app.use(morgan('dev'))
+  console.log('Morgan enabled...')
+}
+
+// Custom middlewares
+app.use(logger)
+app.use(authenticator)
 
 // Default courses
 let courses = [1, 2, 3].map((id) => ({ id, name: faker.name.jobArea() }))
@@ -24,12 +43,10 @@ app.post('/api/courses', (req, res) => {
     return res
       .status(400)
       .contentType('application/json')
-      .send(
-        JSON.stringify({
-          status: 400,
-          message: error.details[0].message.replaceAll('"', '')
-        })
-      )
+      .send({
+        status: 400,
+        message: error.details[0].message.replaceAll('"', '')
+      })
   }
 
   const courseName = req.body.name
@@ -39,7 +56,7 @@ app.post('/api/courses', (req, res) => {
   }
 
   courses.push(course)
-  res.contentType('application/json').send(JSON.stringify(course))
+  res.contentType('application/json').send(course)
 })
 
 app.get('/api/courses/:id', (req, res) => {
@@ -48,17 +65,15 @@ app.get('/api/courses/:id', (req, res) => {
 
   if (!course) {
     return res
-      .status(400)
+      .status(404)
       .contentType('application/json')
-      .send(
-        JSON.stringify({
-          status: 404,
-          message: `Course with given ID - ${courseId} was not found.`
-        })
-      )
+      .send({
+        status: 404,
+        message: `Course with given ID - ${courseId} was not found.`
+      })
   }
 
-  res.contentType('application/json').send(JSON.stringify(course))
+  res.contentType('application/json').send(course)
 })
 
 app.put('/api/courses/:id', (req, res) => {
@@ -69,12 +84,10 @@ app.put('/api/courses/:id', (req, res) => {
     return res
       .status(404)
       .contentType('application/json')
-      .send(
-        JSON.stringify({
-          status: 404,
-          message: `Course with given ID - ${courseId} was not found.`
-        })
-      )
+      .send({
+        status: 404,
+        message: `Course with given ID - ${courseId} was not found.`
+      })
   }
 
   const { error } = validateCourse(req.body)
@@ -83,12 +96,10 @@ app.put('/api/courses/:id', (req, res) => {
     return res
       .status(400)
       .contentType('application/json')
-      .send(
-        JSON.stringify({
-          status: 400,
-          message: error.details[0].message.replaceAll('"', '')
-        })
-      )
+      .send({
+        status: 400,
+        message: error.details[0].message.replaceAll('"', '')
+      })
   }
 
   courses = courses.map((course) => {
@@ -113,23 +124,19 @@ app.delete('/api/courses/:id', (req, res) => {
     return res
       .status(404)
       .contentType('application/json')
-      .send(
-        JSON.stringify({
-          status: 404,
-          message: `Course with given ID - ${courseId} was not found.`
-        })
-      )
+      .send({
+        status: 404,
+        message: `Course with given ID - ${courseId} was not found.`
+      })
   }
 
   courses = courses.filter((course) => course.id !== courseId)
 
-  res.contentType('application/json').send(
-    JSON.stringify({
-      status: 200,
-      message: `Course with given ID - ${courseId} was deleted successfully`,
-      data: courseToDelete
-    })
-  )
+  res.contentType('application/json').send({
+    status: 200,
+    message: `Course with given ID - ${courseId} was deleted successfully`,
+    data: courseToDelete
+  })
 })
 
 function validateCourse(course) {
