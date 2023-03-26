@@ -2,8 +2,10 @@ const express = require('express')
 const morgan = require('morgan')
 const Joi = require('joi')
 const helmet = require('helmet')
+const config = require('config')
+const startUpDebugger = require('debug')('app:startup')
 const { faker } = require('@faker-js/faker')
-const { logger, authenticator } = require('./middleware')
+const { logger, authenticator } = require('./middlewares')
 
 // Setup Express
 const app = express()
@@ -18,7 +20,7 @@ app.use(helmet())
 
 if (app.get('env') === 'development') {
   app.use(morgan('dev'))
-  console.log('Morgan enabled...')
+  startUpDebugger(`Morgan enabled for ${config.get('appName')} ...`)
 }
 
 // Custom middlewares

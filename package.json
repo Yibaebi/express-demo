@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "PORT=3500 DEBUG=app* nodemon index.js",
     "lint:fix": "eslint --fix ./*.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "config": "^3.3.9",
+    "debug": "^3.1.0",
     "express": "^4.18.2",
     "helmet": "^3.9.0",
     "joi": "^13.1.0",
