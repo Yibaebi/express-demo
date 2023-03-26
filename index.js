@@ -9,6 +9,8 @@ const { logger, authenticator } = require('./middlewares')
 
 // Setup Express
 const app = express()
+app.set('view engine', 'pug')
+app.set('views', './views')
 
 // Built in middlewares
 app.use(express.json())
@@ -31,7 +33,10 @@ app.use(authenticator)
 let courses = [1, 2, 3].map((id) => ({ id, name: faker.name.jobArea() }))
 
 app.get('/', (req, res) => {
-  res.send('Hello world!')
+  res.render('index', {
+    title: config.get('appName'),
+    headerText: 'Hello world!'
+  })
 })
 
 app.get('/api/courses', (req, res) => {
